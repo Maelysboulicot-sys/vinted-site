@@ -497,6 +497,1493 @@
   }
   .folder-photo-item:hover .photo-delete { opacity: 1; }
 
+  /* ---------- AUTH GATE ---------- */
+  #auth-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: var(--pine-deep);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .login-card {
+    background: var(--beige);
+    border-radius: 10px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 360px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .login-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pine);
+    margin: 0 0 6px;
+  }
+
+  .login-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-style: italic;
+    font-size: 30px;
+    margin: 0 0 8px;
+    color: var(--text-green);
+  }
+
+  .login-sub {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin: 0 0 22px;
+  }
+
+  .login-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 12px 0 6px;
+  }
+
+  #auth-gate input {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-size: 14px;
+    background: #fff;
+    color: var(--text-green);
+  }
+
+  .login-error {
+    color: #B23A3A;
+    font-size: 12.5px;
+    min-height: 16px;
+    margin: 10px 0 0;
+  }
+
+  .login-submit {
+    margin-top: 14px;
+    width: 100%;
+    text-align: center;
+    padding: 11px 14px;
+  }
+
+  .logout-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid rgba(243,236,220,0.35);
+    color: var(--text-beige);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    padding: 5px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+  .logout-btn:hover { border-color: var(--sage); color: var(--sage); }
+
+  footer.hint {
+    text-align: center;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding-bottom: 30px;
+  }
+</style>
+</head>
+<body>
+
+<div id="auth-gate" style="display:none;">
+  <form id="login-form" class="login-card">
+    <p class="login-eyebrow">Accès privé</p>
+    <h1 class="login-title">Vinted</h1>
+    <p class="login-sub">Connectez-vous pour accéder à l'espace.</p>
+    <label class="login-label" for="login-email">Email</label>
+    <input type="email" id="login-email" required autocomplete="username">
+    <label class="login-label" for="login-password">Mot de passe</label>
+    <input type="password" id="login-password" required autocomplete="current-password">
+    <p id="login-error" class="login-error"></p>
+    <button type="submit" id="login-btn" class="btn-primary login-submit">Se connecter</button>
+  </form>
+</div>
+
+<div id="app-root" style="display:none;">
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand-row">
+      <svg class="brand-tag-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12.5 2H4a2 2 0 0 0-2 2v8.5a2 2 0 0 0 .59 1.41l9.5 9.5a2 2 0 0 0 2.82 0l7.5-7.5a2 2 0 0 0 0-2.82l-9.5-9.5A2 2 0 0 0 12.5 2Z" stroke="#A6AC98" stroke-width="1.6" stroke-linejoin="round"/>
+        <circle cx="7.5" cy="7.5" r="1.5" fill="#A6AC98"/>
+      </svg>
+      <p class="wordmark">Vinted</p>
+      <button type="button" id="logout-btn" class="logout-btn">Se déconnecter</button>
+    </div>
+    <nav class="tabs" aria-label="Navigation principale">
+      <button class="tab-btn active" data-cat="accueil">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 11 12 4l8 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Accueil
+      </button>
+      <button class="tab-btn" data-cat="comptes">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 20c1.4-4 4-6 7.5-6s6.1 2 7.5 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Comptes
+      </button>
+      <button class="tab-btn" data-cat="photos">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="13" r="3.2" stroke="currentColor" stroke-width="1.6"/><path d="M8 6l1.4-2h5.2L16 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Photos
+      </button>
+      <button class="tab-btn" data-cat="messages-types">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 5h16v11H7l-3 3V5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Messages types
+      </button>
+      <button class="tab-btn" data-cat="performances">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 20V10M11 20V4M18 20v-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Performances
+      </button>
+    </nav>
+  </div>
+</header>
+
+<div class="sub-nav-wrap">
+  <div class="sub-nav-inner">
+    <nav class="sub-tabs active" data-parent="comptes" aria-label="Comptes">
+      <button class="sub-tab-btn active" data-sub="ingridd33">ingrid.d33</button>
+      <button class="sub-tab-btn" data-sub="maeee33">maeee_33</button>
+      <button class="sub-tab-btn" data-sub="christelmelous2508">christelmelous2508</button>
+      <button class="sub-tab-btn" data-sub="patrickp5">patrick_p5</button>
+      <button class="sub-tab-btn" data-sub="romanep4">romanep4</button>
+    </nav>
+    <nav class="sub-tabs" data-parent="photos" aria-label="Photos">
+      <button class="sub-tab-btn active" data-sub="doudounes">Doudounes</button>
+      <button class="sub-tab-btn" data-sub="echarpes">Écharpes</button>
+      <button class="sub-tab-btn" data-sub="polaires">Polaires</button>
+      <button class="sub-tab-btn" data-sub="produits-derives">Produits dérivés</button>
+    </nav>
+  </div>
+</div>
+
+<main>
+  <!-- Accueil -->
+  <section class="panel active" id="panel-accueil">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Tableau de bord</p>
+        <h1 class="panel-title">Accueil</h1>
+      </div>
+    </div>
+
+    <div class="connect-bar">
+      <span class="dot" id="connect-dot"></span>
+      <span class="connect-status" id="connect-status">Aucun fichier connecté — connectez votre fichier Excel (.xlsm) pour afficher vos chiffres.</span>
+      <button class="btn-primary" id="btn-connect">Connecter le fichier Excel</button>
+      <button class="btn-secondary" id="btn-refresh" style="display:none;">Actualiser</button>
+      <input type="file" id="file-fallback" accept=".xlsx,.xlsm" style="display:none;">
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <p class="kpi-label">CA Annuel 2026</p>
+        <p class="kpi-value" id="kpi-ca">—</p>
+        <p class="kpi-sub" id="kpi-ca-sub">En attente du fichier</p>
+      </div>
+      <div class="kpi-card">
+        <p class="kpi-label">Performance moyenne 2026</p>
+        <p class="kpi-value" id="kpi-perf">—</p>
+        <p class="kpi-sub" id="kpi-perf-sub">En attente du fichier</p>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>CA par mois — 01/01/2026 → 31/12/2026</h3>
+        <canvas id="chart-ca"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Performance des ventes (%) par mois</h3>
+        <canvas id="chart-perf"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comptes -->
+  <section class="panel" id="panel-ingridd33">
+    <div class="panel-head">
+      <div><p class="eyebrow">Comptes · ingrid.d33</p><h1 class="panel-title">ingrid.d33</h1></div>
+    </div>
+    <div class="notes-grid" data-account="ingridd33">
+      <div class="note-col">
+        <label class="note-label">Messages Favoris</label>
+        <textarea class="note-block" data-note="1" readonly placeholder="Écrivez votre texte ici…"></textarea>
+      </div>
+      <div class="note-col">
+        <label class="note-label">Annonces types</label>
+        <textarea class="note-block" data-note="2" readonly placeholder="Écrivez votre texte ici…"></textarea>
+      </div>
+      <div class="note-actions">
+        <button class="btn-secondary note-edit-btn">Modifier</button>
+        <button class="btn-primary note-save-btn" style="display:none;">Enregistrer</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-maeee33">
+    <div class="panel-head">
+      <div><p class="eyebrow">Comptes · maeee_33</p><h1 class="panel-title">maeee_33</h1></div>
+    </div>
+    <div class="notes-grid" data-account="maeee33">
+      <div class="note-col">
+        <label class="note-label">Messages Favoris</label>
+        <textarea class="note-block" data-note="1" readonly placeholder="Écrivez votre texte ici…"></textarea>
+      </div>
+      <div class="note-col">
+        <label class="note-label">Annonces types</label>
+        <textarea class="note-block" data-note="2" readonly placeholder="Écrivez votre texte ici…"></textarea>
+      </div>
+      <div class="note-actions">
+        <button class="btn-secondary note-edit-btn">Modifier</button>
+        <button class="btn-primary note-save-btn" style="display:none;">Enregistrer</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-christelmelous2508">
+    <div class="panel-head">
+      <div><p class="eyebrow">Comptes · christelmelous2508</p><h1 class="panel-title">christelmelous2508</h1></div>
+    </div>
+    <div class="notes-grid" data-account="christelmelous2508">
+      <div class="note-col">
+        <label class="note-label">Messages Favoris</label>
+        <textarea class="note-block" data-note="1" readonly placeholder="Écrivez votre texte ici…"></textarea>
+      </div>
+      <div class="note-col">
+        <label class="note-label">Annonces types</label>
+        <textarea class="note-block" data-note="2" readonly placeholder="Écrivez votre texte ici…"></textarea>
+      </div>
+      <div class="note-actions">
+        <button class="btn-secondary note-edit-btn">Modifier</button>
+        <button class="btn-primary note-save-btn" style="display:none;">Enregistrer</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-patrickp5">
+    <div class="panel-head">
+      <div><p class="eyebrow">Comptes · patrick_p5</p><h1 class="panel-title">patrick_p5</h1></div>
+    </div>
+    <div class="notes-grid" data-account="patrickp5">
+      <div class="note-col">
+        <label class="note-label">Messages Favoris</label>
+        <textarea class="note-block" data-note="1" readonly placeholder="Écrivez votre texte ici…"></textarea>
+      </div>
+      <div class="note-col">
+        <label class="note-label">Annonces types</label>
+        <textarea class="note-block" data-note="2" readonly placeholder="Écrivez votre texte ici…"></textarea>
+      </div>
+      <div class="note-actions">
+        <button class="btn-secondary note-edit-btn">Modifier</button>
+        <button class="btn-primary note-save-btn" style="display:none;">Enregistrer</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-romanep4">
+    <div class="panel-head">
+      <div><p class="eyebrow">Comptes · romanep4</p><h1 class="panel-title">romanep4</h1></div>
+    </div>
+    <div class="notes-grid" data-account="romanep4">
+      <div class="note-col">
+        <label class="note-label">Messages Favoris</label>
+        <textarea class="note-block" data-note="1" readonly placeholder="Écrivez votre texte ici…"></textarea>
+      </div>
+      <div class="note-col">
+        <label class="note-label">Annonces types</label>
+        <textarea class="note-block" data-note="2" readonly placeholder="Écrivez votre texte ici…"></textarea>
+      </div>
+      <div class="note-actions">
+        <button class="btn-secondary note-edit-btn">Modifier</button>
+        <button class="btn-primary note-save-btn" style="display:none;">Enregistrer</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Photos -->
+  <section class="panel" id="panel-doudounes">
+    <div class="panel-head">
+      <div><p class="eyebrow">Photos · Doudounes</p><h1 class="panel-title">Doudounes</h1></div>
+    </div>
+    <div class="photo-folders" data-category="doudounes">
+      <div class="folders-toolbar"><button class="btn-primary btn-new-folder">+ Créer un dossier</button></div>
+      <div class="folder-form" style="display:none;">
+        <input type="text" class="folder-name-input" placeholder="Nom du dossier (ex : Hiver 2026)">
+        <input type="file" class="folder-photos-input" accept="image/*" multiple>
+        <div class="folder-form-actions">
+          <button class="btn-primary btn-save-folder">Enregistrer</button>
+          <button class="btn-secondary btn-cancel-folder">Annuler</button>
+        </div>
+      </div>
+      <div class="folders-grid"></div>
+      <div class="folder-detail" style="display:none;"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-echarpes">
+    <div class="panel-head">
+      <div><p class="eyebrow">Photos · Écharpes</p><h1 class="panel-title">Écharpes</h1></div>
+    </div>
+    <div class="photo-folders" data-category="echarpes">
+      <div class="folders-toolbar"><button class="btn-primary btn-new-folder">+ Créer un dossier</button></div>
+      <div class="folder-form" style="display:none;">
+        <input type="text" class="folder-name-input" placeholder="Nom du dossier (ex : Hiver 2026)">
+        <input type="file" class="folder-photos-input" accept="image/*" multiple>
+        <div class="folder-form-actions">
+          <button class="btn-primary btn-save-folder">Enregistrer</button>
+          <button class="btn-secondary btn-cancel-folder">Annuler</button>
+        </div>
+      </div>
+      <div class="folders-grid"></div>
+      <div class="folder-detail" style="display:none;"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-polaires">
+    <div class="panel-head">
+      <div><p class="eyebrow">Photos · Polaires</p><h1 class="panel-title">Polaires</h1></div>
+    </div>
+    <div class="photo-folders" data-category="polaires">
+      <div class="folders-toolbar"><button class="btn-primary btn-new-folder">+ Créer un dossier</button></div>
+      <div class="folder-form" style="display:none;">
+        <input type="text" class="folder-name-input" placeholder="Nom du dossier (ex : Hiver 2026)">
+        <input type="file" class="folder-photos-input" accept="image/*" multiple>
+        <div class="folder-form-actions">
+          <button class="btn-primary btn-save-folder">Enregistrer</button>
+          <button class="btn-secondary btn-cancel-folder">Annuler</button>
+        </div>
+      </div>
+      <div class="folders-grid"></div>
+      <div class="folder-detail" style="display:none;"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-produits-derives">
+    <div class="panel-head">
+      <div><p class="eyebrow">Photos · Produits dérivés</p><h1 class="panel-title">Produits dérivés</h1></div>
+    </div>
+    <div class="photo-folders" data-category="produits-derives">
+      <div class="folders-toolbar"><button class="btn-primary btn-new-folder">+ Créer un dossier</button></div>
+      <div class="folder-form" style="display:none;">
+        <input type="text" class="folder-name-input" placeholder="Nom du dossier (ex : Hiver 2026)">
+        <input type="file" class="folder-photos-input" accept="image/*" multiple>
+        <div class="folder-form-actions">
+          <button class="btn-primary btn-save-folder">Enregistrer</button>
+          <button class="btn-secondary btn-cancel-folder">Annuler</button>
+        </div>
+      </div>
+      <div class="folders-grid"></div>
+      <div class="folder-detail" style="display:none;"></div>
+    </div>
+  </section>
+
+  <!-- Messages types (no sub) -->
+  <section class="panel" id="panel-messages-types">
+    <div class="panel-head">
+      <div><p class="eyebrow">Étape à venir</p><h1 class="panel-title">Messages types</h1></div>
+    </div>
+    <div class="placeholder-box"><span class="tag-stub">on verra plus tard</span><p>Vos messages pré-rédigés viendront ici.</p></div>
+  </section>
+
+  <!-- Performances (no sub) -->
+  <section class="panel" id="panel-performances">
+    <div class="panel-head">
+      <div><p class="eyebrow">Étape à venir</p><h1 class="panel-title">Performances</h1></div>
+    </div>
+    <div class="placeholder-box"><span class="tag-stub">on étudiera ça après</span><p>Vos statistiques et indicateurs de performance viendront ici.</p></div>
+  </section>
+</main>
+
+<footer class="hint">Étape 3 : Accueil avec CA annuel, performance moyenne et graphiques connectés à votre Excel.</footer>
+
+</div>
+
+<script>
+(function () {
+  // ---------------------------------------------------------------
+  // SUPABASE — connexion partagée (notes + photos, synchronisées entre appareils)
+  // ---------------------------------------------------------------
+  const SUPABASE_URL = 'https://jsjywqjswjdvgeaeuppv.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_3XDD2mAOUnAPRR1i0KocLw_TNbazytP';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const PHOTOS_BUCKET = 'photos';
+
+  const catTabs = document.querySelectorAll('.tab-btn');
+  const subNavs = document.querySelectorAll('.sub-tabs');
+  const panels = document.querySelectorAll('.panel');
+
+  function initApp() {
+  // default first sub-tab per category (if it has subs)
+  const firstSubOf = {
+    comptes: 'ingridd33',
+    photos: 'doudounes'
+  };
+
+  function showPanel(id) {
+    panels.forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('panel-' + id);
+    if (target) target.classList.add('active');
+  }
+
+  function activateCategory(cat) {
+    catTabs.forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+    subNavs.forEach(n => n.classList.toggle('active', n.dataset.parent === cat));
+
+    if (firstSubOf[cat]) {
+      const subNav = document.querySelector('.sub-tabs[data-parent="' + cat + '"]');
+      subNav.querySelectorAll('.sub-tab-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.sub === firstSubOf[cat])
+      );
+      showPanel(firstSubOf[cat]);
+    } else {
+      showPanel(cat);
+    }
+  }
+
+  catTabs.forEach(tab => {
+    tab.addEventListener('click', () => activateCategory(tab.dataset.cat));
+  });
+
+  subNavs.forEach(nav => {
+    nav.querySelectorAll('.sub-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        nav.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        showPanel(btn.dataset.sub);
+      });
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // ACCUEIL — connexion au fichier Excel + graphiques
+  // ---------------------------------------------------------------
+  const TARGET_YEAR = 2026;
+  const MONTH_LABELS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+
+  const dot = document.getElementById('connect-dot');
+  const statusEl = document.getElementById('connect-status');
+  const btnConnect = document.getElementById('btn-connect');
+  const btnRefresh = document.getElementById('btn-refresh');
+  const fileFallback = document.getElementById('file-fallback');
+  const kpiCa = document.getElementById('kpi-ca');
+  const kpiCaSub = document.getElementById('kpi-ca-sub');
+  const kpiPerf = document.getElementById('kpi-perf');
+  const kpiPerfSub = document.getElementById('kpi-perf-sub');
+
+  let fileHandle = null;
+  let lastModified = null;
+  let pollTimer = null;
+  let chartCa = null;
+  let chartPerf = null;
+
+  function euros(n) {
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+  }
+
+  function toNumber(v) {
+    if (typeof v === 'number') return v;
+    if (typeof v === 'string') {
+      const cleaned = v.replace(',', '.').trim();
+      const n = parseFloat(cleaned);
+      return isNaN(n) ? 0 : n;
+    }
+    return 0;
+  }
+
+  // Find the row index in a sheet_to_json(header:1) array where column B equals `year`
+  function findYearRow(rows, year) {
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i] && Number(rows[i][1]) === year) return i;
+    }
+    return -1;
+  }
+
+  // From a year-row, search downward (within maxOffset rows) for a row whose column C
+  // matches `labelMatch` (case-insensitive substring match)
+  function findLabelRow(rows, startIdx, labelMatch, maxOffset) {
+    const target = labelMatch.toLowerCase();
+    const limit = Math.min(rows.length, startIdx + maxOffset);
+    for (let i = startIdx; i < limit; i++) {
+      const cell = rows[i] && rows[i][2];
+      if (typeof cell === 'string' && cell.toLowerCase().includes(target)) return i;
+    }
+    return -1;
+  }
+
+  function extractYearMonths(rows, labelMatch) {
+    const yearRow = findYearRow(rows, TARGET_YEAR);
+    if (yearRow === -1) return null;
+    const labelRow = findLabelRow(rows, yearRow, labelMatch, 20);
+    if (labelRow === -1) return null;
+    // columns D..O (index 3..14) = janvier..décembre
+    return rows[labelRow].slice(3, 15).map(toNumber);
+  }
+
+  function renderCharts(caMonths, perfMonths) {
+    const caTotal = caMonths.reduce((a, b) => a + b, 0);
+    const monthsWithSales = caMonths.filter(v => v > 0).length;
+    const perfValuesWithSales = perfMonths.filter((v, i) => caMonths[i] > 0);
+    const perfAvg = perfValuesWithSales.length
+      ? perfValuesWithSales.reduce((a, b) => a + b, 0) / perfValuesWithSales.length
+      : 0;
+
+    kpiCa.textContent = euros(caTotal);
+    kpiCaSub.textContent = monthsWithSales + ' mois avec ventes sur 12';
+    kpiPerf.textContent = (perfAvg * 100).toFixed(1) + ' %';
+    kpiPerfSub.textContent = 'Moyenne sur les mois actifs';
+
+    const ctxCa = document.getElementById('chart-ca').getContext('2d');
+    const ctxPerf = document.getElementById('chart-perf').getContext('2d');
+
+    if (chartCa) chartCa.destroy();
+    if (chartPerf) chartPerf.destroy();
+
+    chartCa = new Chart(ctxCa, {
+      type: 'bar',
+      data: {
+        labels: MONTH_LABELS,
+        datasets: [{
+          label: 'CA (€)',
+          data: caMonths,
+          backgroundColor: '#2F5240',
+          borderRadius: 3,
+          maxBarThickness: 34
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { callback: v => v + ' €' } }
+        }
+      }
+    });
+
+    chartPerf = new Chart(ctxPerf, {
+      type: 'line',
+      data: {
+        labels: MONTH_LABELS,
+        datasets: [{
+          label: 'Performance (%)',
+          data: perfMonths.map(v => +(v * 100).toFixed(1)),
+          borderColor: '#A6AC98',
+          backgroundColor: 'rgba(166,172,152,0.18)',
+          tension: 0.3,
+          fill: true,
+          pointBackgroundColor: '#2F5240'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { ticks: { callback: v => v + ' %' } }
+        }
+      }
+    });
+  }
+
+  function parseWorkbook(arrayBuffer) {
+    const wb = XLSX.read(arrayBuffer, { type: 'array' });
+
+    const shRes = wb.Sheets['Compte de résultats'];
+    const shPerf = wb.Sheets['Performance ventes'];
+
+    if (!shRes || !shPerf) {
+      statusEl.textContent = 'Feuilles "Compte de résultats" / "Performance ventes" introuvables dans ce fichier.';
+      dot.classList.remove('ok');
+      return;
+    }
+
+    const rowsRes = XLSX.utils.sheet_to_json(shRes, { header: 1, defval: null });
+    const rowsPerf = XLSX.utils.sheet_to_json(shPerf, { header: 1, defval: null });
+
+    const caMonths = extractYearMonths(rowsRes, "chiffre d'affaires");
+    const perfMonths = extractYearMonths(rowsPerf, 'marge moyenne');
+
+    if (!caMonths || !perfMonths) {
+      statusEl.textContent = 'Structure ' + TARGET_YEAR + ' non reconnue dans le fichier (lignes attendues introuvables).';
+      dot.classList.remove('ok');
+      return;
+    }
+
+    renderCharts(caMonths, perfMonths);
+  }
+
+  async function loadFromHandle() {
+    try {
+      const file = await fileHandle.getFile();
+      if (lastModified !== null && file.lastModified === lastModified) return; // pas de changement
+      lastModified = file.lastModified;
+      const buf = await file.arrayBuffer();
+      parseWorkbook(buf);
+      dot.classList.add('ok');
+      const t = new Date(file.lastModified).toLocaleTimeString('fr-FR');
+      statusEl.textContent = file.name + ' — mis à jour à ' + t + ' (vérification auto toutes les 4s)';
+    } catch (e) {
+      console.warn('Erreur de lecture du fichier', e);
+      statusEl.textContent = 'Erreur de lecture du fichier. Reconnectez-le.';
+      dot.classList.remove('ok');
+    }
+  }
+
+  async function connectWithPicker() {
+    try {
+      const [handle] = await window.showOpenFilePicker({
+        types: [{
+          description: 'Fichiers Excel',
+          accept: { 'application/vnd.ms-excel.sheet.macroEnabled.12': ['.xlsm'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }
+        }]
+      });
+      fileHandle = handle;
+      lastModified = null;
+      await loadFromHandle();
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(loadFromHandle, 4000);
+    } catch (e) {
+      if (e.name !== 'AbortError') console.warn(e);
+    }
+  }
+
+  function connectWithInput() {
+    fileFallback.click();
+  }
+
+  fileFallback.addEventListener('change', async () => {
+    const file = fileFallback.files[0];
+    if (!file) return;
+    const buf = await file.arrayBuffer();
+    parseWorkbook(buf);
+    dot.classList.add('ok');
+    statusEl.textContent = file.name + ' chargé — cliquez "Actualiser" après chaque sauvegarde (pas de suivi auto dans ce navigateur).';
+    btnRefresh.style.display = 'inline-block';
+  });
+
+  btnRefresh.addEventListener('click', connectWithInput);
+
+  const supportsFSAccess = 'showOpenFilePicker' in window && window.isSecureContext;
+
+  btnConnect.addEventListener('click', () => {
+    if (supportsFSAccess) {
+      connectWithPicker();
+    } else {
+      statusEl.textContent = 'Mise à jour auto non supportée ici (ouvrez via Live Server sur Chrome/Edge pour l\'auto-refresh). Sélection manuelle activée.';
+      connectWithInput();
+    }
+  });
+
+  // ---------------------------------------------------------------
+  // COMPTES — blocs de texte modifiables (Modifier / Enregistrer)
+  // Stockés dans Supabase (table "notes"), partagés entre appareils
+  // ---------------------------------------------------------------
+  document.querySelectorAll('.notes-grid').forEach(grid => {
+    const account = grid.dataset.account;
+    const textareas = grid.querySelectorAll('.note-block');
+    const editBtn = grid.querySelector('.note-edit-btn');
+    const saveBtn = grid.querySelector('.note-save-btn');
+
+    // Charger le texte sauvegardé depuis Supabase
+    (async () => {
+      try {
+        const { data, error } = await sb.from('notes').select('note_key, content').eq('account', account);
+        if (error) throw error;
+        textareas.forEach(ta => {
+          const row = (data || []).find(r => r.note_key === ta.dataset.note);
+          if (row) ta.value = row.content || '';
+        });
+      } catch (e) {
+        console.warn('Lecture Supabase impossible (notes)', e);
+      }
+    })();
+
+    editBtn.addEventListener('click', () => {
+      textareas.forEach(ta => {
+        ta.readOnly = false;
+        ta.classList.add('editing');
+      });
+      editBtn.style.display = 'none';
+      saveBtn.style.display = 'inline-block';
+      textareas[0].focus();
+    });
+
+    saveBtn.addEventListener('click', async () => {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Enregistrement…';
+      try {
+        const rows = Array.from(textareas).map(ta => ({
+          account,
+          note_key: ta.dataset.note,
+          content: ta.value,
+          updated_at: new Date().toISOString()
+        }));
+        const { error } = await sb.from('notes').upsert(rows, { onConflict: 'account,note_key' });
+        if (error) throw error;
+      } catch (e) {
+        console.warn('Sauvegarde Supabase impossible (notes)', e);
+        alert('La sauvegarde a échoué (connexion Supabase). Vérifiez votre connexion internet et réessayez.');
+      }
+      textareas.forEach(ta => {
+        ta.readOnly = true;
+        ta.classList.remove('editing');
+      });
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Enregistrer';
+      saveBtn.style.display = 'none';
+      editBtn.style.display = 'inline-block';
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // PHOTOS — dossiers photos (Supabase Storage + table, partagés entre appareils)
+  // ---------------------------------------------------------------
+  async function addFolder(category, name, files) {
+    const { data: folder, error: folderErr } = await sb
+      .from('photo_folders')
+      .insert({ category, name })
+      .select()
+      .single();
+    if (folderErr) throw folderErr;
+
+    for (const file of files) {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `${category}/${folder.id}/${Date.now()}_${safeName}`;
+      const { error: uploadErr } = await sb.storage.from(PHOTOS_BUCKET).upload(path, file);
+      if (uploadErr) throw uploadErr;
+      const { error: itemErr } = await sb
+        .from('photo_items')
+        .insert({ folder_id: folder.id, storage_path: path, file_name: file.name });
+      if (itemErr) throw itemErr;
+    }
+    return folder.id;
+  }
+
+  async function getFoldersByCategory(category) {
+    const { data, error } = await sb
+      .from('photo_folders')
+      .select('*, photo_items(*)')
+      .eq('category', category)
+      .order('created_at', { ascending: false })
+      .order('created_at', { foreignTable: 'photo_items', ascending: true });
+    if (error) throw error;
+    return data || [];
+  }
+
+  async function getFolder(id) {
+    const { data, error } = await sb
+      .from('photo_folders')
+      .select('*, photo_items(*)')
+      .eq('id', id)
+      .order('created_at', { foreignTable: 'photo_items', ascending: true })
+      .single();
+    if (error) return null;
+    return data;
+  }
+
+  async function deleteFolder(id, photoItems) {
+    const paths = (photoItems || []).map(p => p.storage_path);
+    if (paths.length) await sb.storage.from(PHOTOS_BUCKET).remove(paths);
+    const { error } = await sb.from('photo_folders').delete().eq('id', id);
+    if (error) throw error;
+  }
+
+  async function deletePhotoItem(itemId, storagePath) {
+    await sb.storage.from(PHOTOS_BUCKET).remove([storagePath]);
+    const { error } = await sb.from('photo_items').delete().eq('id', itemId);
+    if (error) throw error;
+  }
+
+  function publicPhotoUrl(path) {
+    return sb.storage.from(PHOTOS_BUCKET).getPublicUrl(path).data.publicUrl;
+  }
+
+  function escapeHtmlPhotos(str) {
+    return String(str).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s]));
+  }
+
+  async function renderFolderView(container) {
+    const category = container.dataset.category;
+    const openId = container.dataset.open;
+    const gridEl = container.querySelector('.folders-grid');
+    const detailEl = container.querySelector('.folder-detail');
+
+    if (!openId) {
+      detailEl.style.display = 'none';
+      detailEl.innerHTML = '';
+      gridEl.style.display = 'grid';
+      gridEl.innerHTML = '<p class="empty-hint">Chargement…</p>';
+      let folders;
+      try {
+        folders = await getFoldersByCategory(category);
+      } catch (e) {
+        console.warn('Lecture Supabase impossible (dossiers)', e);
+        gridEl.innerHTML = '<p class="empty-hint">Impossible de charger les dossiers (vérifiez la connexion Supabase).</p>';
+        return;
+      }
+      gridEl.innerHTML = '';
+      if (!folders.length) {
+        gridEl.innerHTML = '<p class="empty-hint">Aucun dossier pour le moment — créez-en un ci-dessus.</p>';
+        return;
+      }
+      folders.forEach(folder => {
+        const items = folder.photo_items || [];
+        const cover = items[0];
+        const coverUrl = cover ? publicPhotoUrl(cover.storage_path) : '';
+        const card = document.createElement('div');
+        card.className = 'folder-card';
+        card.innerHTML = `
+          <button class="folder-delete" aria-label="Supprimer le dossier">×</button>
+          <div class="folder-cover" style="${coverUrl ? `background-image:url('${coverUrl}')` : ''}">${coverUrl ? '' : '📁'}</div>
+          <div class="folder-name">${escapeHtmlPhotos(folder.name)}</div>
+          <div class="folder-count">${items.length} photo${items.length > 1 ? 's' : ''}</div>
+        `;
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.folder-delete')) return;
+          container.dataset.open = String(folder.id);
+          renderFolderView(container);
+        });
+        card.querySelector('.folder-delete').addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (confirm('Supprimer ce dossier et toutes ses photos ?')) {
+            try {
+              await deleteFolder(folder.id, items);
+              renderFolderView(container);
+            } catch (err) {
+              console.warn('Suppression impossible', err);
+              alert('La suppression a échoué. Réessayez.');
+            }
+          }
+        });
+        gridEl.appendChild(card);
+      });
+    } else {
+      gridEl.style.display = 'none';
+      detailEl.style.display = 'block';
+      detailEl.innerHTML = '<p class="empty-hint">Chargement…</p>';
+      let folder;
+      try {
+        folder = await getFolder(openId);
+      } catch (e) {
+        console.warn('Lecture Supabase impossible (dossier)', e);
+      }
+      if (!folder) { container.dataset.open = ''; renderFolderView(container); return; }
+      detailEl.innerHTML = `
+        <button class="btn-secondary folder-back">← Retour aux dossiers</button>
+        <h4 class="folder-detail-title">${escapeHtmlPhotos(folder.name)}</h4>
+        <div class="folder-photos-grid"></div>
+      `;
+      const photosGrid = detailEl.querySelector('.folder-photos-grid');
+      (folder.photo_items || []).forEach(photo => {
+        const url = publicPhotoUrl(photo.storage_path);
+        const item = document.createElement('div');
+        item.className = 'folder-photo-item';
+        item.innerHTML = `<img src="${url}" alt="${escapeHtmlPhotos(photo.file_name || '')}"><button class="photo-delete" aria-label="Supprimer la photo">×</button>`;
+        item.querySelector('.photo-delete').addEventListener('click', async () => {
+          try {
+            await deletePhotoItem(photo.id, photo.storage_path);
+            renderFolderView(container);
+          } catch (err) {
+            console.warn('Suppression impossible', err);
+            alert('La suppression a échoué. Réessayez.');
+          }
+        });
+        photosGrid.appendChild(item);
+      });
+      detailEl.querySelector('.folder-back').addEventListener('click', () => {
+        container.dataset.open = '';
+        renderFolderView(container);
+      });
+    }
+  }
+
+  document.querySelectorAll('.photo-folders').forEach(container => {
+    container.dataset.open = '';
+    const category = container.dataset.category;
+    const toolbarBtn = container.querySelector('.btn-new-folder');
+    const form = container.querySelector('.folder-form');
+    const nameInput = container.querySelector('.folder-name-input');
+    const filesInput = container.querySelector('.folder-photos-input');
+    const saveFolderBtn = container.querySelector('.btn-save-folder');
+    const cancelFolderBtn = container.querySelector('.btn-cancel-folder');
+
+    toolbarBtn.addEventListener('click', () => {
+      form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+    });
+    cancelFolderBtn.addEventListener('click', () => {
+      form.style.display = 'none';
+      nameInput.value = '';
+      filesInput.value = '';
+    });
+    saveFolderBtn.addEventListener('click', async () => {
+      const name = nameInput.value.trim();
+      if (!name) { alert('Merci de donner un nom au dossier.'); return; }
+      if (!filesInput.files.length) { alert('Sélectionnez au moins une photo.'); return; }
+      saveFolderBtn.disabled = true;
+      saveFolderBtn.textContent = 'Envoi en cours…';
+      try {
+        await addFolder(category, name, filesInput.files);
+        nameInput.value = '';
+        filesInput.value = '';
+        form.style.display = 'none';
+      } catch (e) {
+        console.warn('Création du dossier impossible', e);
+        alert('La création du dossier a échoué (vérifiez la connexion Supabase et que le bucket "photos" existe).');
+      }
+      saveFolderBtn.disabled = false;
+      saveFolderBtn.textContent = 'Enregistrer';
+      renderFolderView(container);
+    });
+
+    renderFolderView(container);
+  });
+  } // fin de initApp()
+
+  // ---------------------------------------------------------------
+  // AUTHENTIFICATION — écran de connexion avant d'afficher le site
+  // ---------------------------------------------------------------
+  const authGate = document.getElementById('auth-gate');
+  const appRoot = document.getElementById('app-root');
+  const loginForm = document.getElementById('login-form');
+  const loginEmail = document.getElementById('login-email');
+  const loginPassword = document.getElementById('login-password');
+  const loginError = document.getElementById('login-error');
+  const loginBtn = document.getElementById('login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  let appStarted = false;
+
+  function showApp() {
+    authGate.style.display = 'none';
+    appRoot.style.display = '';
+  }
+
+  function showLogin() {
+    appRoot.style.display = 'none';
+    authGate.style.display = 'flex';
+  }
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginError.textContent = '';
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Connexion…';
+    const { error } = await sb.auth.signInWithPassword({
+      email: loginEmail.value.trim(),
+      password: loginPassword.value
+    });
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Se connecter';
+    if (error) {
+      loginError.textContent = 'Email ou mot de passe incorrect.';
+    }
+  });
+
+  logoutBtn.addEventListener('click', async () => {
+    await sb.auth.signOut();
+  });
+
+  sb.auth.onAuthStateChange((event, session) => {
+    if (session) {
+      showApp();
+      if (!appStarted) {
+        appStarted = true;
+        initApp();
+      }
+    } else {
+      showLogin();
+    }
+  });
+
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session) {
+      showApp();
+      if (!appStarted) {
+        appStarted = true;
+        initApp();
+      }
+    } else {
+      showLogin();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
+    min-height: 100vh;
+  }
+
+  button, input, textarea { font-family: inherit; }
+  button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--pine);
+    outline-offset: 2px;
+  }
+
+  /* ---------- HEADER ---------- */
+  header.top {
+    background: var(--pine);
+    border-bottom: 3px solid var(--sage);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .top-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 18px clamp(16px, 4vw, 40px) 0;
+  }
+
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .brand-tag-icon { width: 26px; height: 26px; flex-shrink: 0; }
+
+  .wordmark {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-style: italic;
+    font-size: 26px;
+    letter-spacing: -0.01em;
+    color: var(--text-beige);
+    margin: 0;
+  }
+
+  nav.tabs {
+    display: flex;
+    gap: clamp(4px, 2vw, 8px);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav.tabs::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    background: transparent;
+    border: none;
+    color: rgba(243,236,220,0.65);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 16px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .tab-btn svg { width: 16px; height: 16px; opacity: 0.85; }
+  .tab-btn:hover { color: var(--text-beige); }
+  .tab-btn.active { color: var(--text-beige); border-bottom-color: var(--beige); }
+
+  /* ---------- SUB NAV ---------- */
+  .sub-nav-wrap {
+    background: var(--sage);
+  }
+  .sub-nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 4vw, 40px);
+  }
+  nav.sub-tabs {
+    display: none;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 10px 0;
+  }
+  nav.sub-tabs::-webkit-scrollbar { display: none; }
+  nav.sub-tabs.active { display: flex; }
+
+  .sub-tab-btn {
+    background: var(--beige-dim);
+    border: 1px solid rgba(30,51,39,0.12);
+    color: var(--text-green);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    padding: 6px 13px;
+    border-radius: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .sub-tab-btn:hover { background: var(--beige-dim); }
+  .sub-tab-btn.active {
+    background: var(--pine);
+    border-color: var(--pine);
+    color: var(--text-beige);
+    font-weight: 600;
+  }
+
+  /* ---------- MAIN ---------- */
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px clamp(16px, 4vw, 40px) 100px;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: fade .25s ease; }
+
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  h1.panel-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(24px, 4vw, 32px);
+    margin: 0;
+    color: var(--text-green);
+  }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pine);
+    margin: 0 0 6px;
+  }
+
+  .placeholder-box {
+    border: 1.5px dashed var(--line);
+    border-radius: 8px;
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--muted);
+    background: rgba(243,236,220,0.55);
+  }
+
+  .placeholder-box p {
+    margin: 0 auto;
+    max-width: 40ch;
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+
+  .placeholder-box .tag-stub {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--pine);
+    border: 1px solid var(--pine);
+    padding: 3px 10px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+  }
+
+  /* ---------- ACCUEIL / DASHBOARD ---------- */
+  .connect-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: rgba(243,236,220,0.65);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 28px;
+  }
+
+  .connect-bar .dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: #C24444;
+    flex-shrink: 0;
+  }
+  .connect-bar .dot.ok { background: #4E9A6B; }
+
+  .connect-status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .btn-primary, .btn-secondary {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--beige-dim);
+    border: 1px solid var(--pine);
+    color: var(--pine);
+    font-weight: 600;
+  }
+  .btn-primary:hover { background: var(--beige-dim); border-color: var(--pine-bright); color: var(--pine-bright); }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-green);
+  }
+  .btn-secondary:hover { border-color: var(--pine); color: var(--pine); }
+
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .kpi-card {
+    background: var(--pine);
+    color: var(--text-beige);
+    border-radius: 8px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::after {
+    content: '';
+    position: absolute;
+    right: -20px; top: -20px;
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    background: rgba(166,172,152,0.20);
+  }
+  .kpi-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sage-light);
+    margin: 0 0 8px;
+  }
+  .kpi-value {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: clamp(28px, 4vw, 38px);
+    margin: 0;
+    line-height: 1;
+  }
+  .kpi-sub {
+    font-size: 12.5px;
+    color: rgba(243,236,220,0.75);
+    margin: 8px 0 0;
+  }
+
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 860px) { .chart-grid { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: rgba(243,236,220,0.7);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .chart-card h3 {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 16.5px;
+    margin: 0 0 14px;
+    color: var(--text-green);
+  }
+  .chart-card canvas { max-height: 260px; }
+
+  /* ---------- NOTE BLOCKS (Comptes) ---------- */
+  .notes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 700px) { .notes-grid { grid-template-columns: 1fr; } }
+
+  .note-col { display: flex; flex-direction: column; gap: 8px; }
+
+  .note-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .note-block {
+    width: 100%;
+    min-height: 160px;
+    resize: vertical;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-green);
+    background: rgba(243,236,220,0.65);
+    border: 1.5px dashed var(--line);
+  }
+  .note-block:read-only {
+    background: rgba(243,236,220,0.5);
+    color: var(--text-green);
+    cursor: default;
+  }
+  .note-block.editing {
+    background: var(--beige);
+    border: 1.5px solid var(--pine);
+    cursor: text;
+  }
+  .note-block:focus-visible { outline: 2px solid var(--pine-bright); outline-offset: 1px; }
+
+  .note-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+  }
+
+  /* ---------- PHOTO FOLDERS (Photos) ---------- */
+  .folders-toolbar { margin-bottom: 16px; }
+
+  .folder-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(243,236,220,0.65);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    max-width: 420px;
+  }
+  .folder-form input[type="text"] {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 9px 12px;
+    font-size: 14px;
+    background: var(--beige);
+  }
+  .folder-form input[type="file"] { font-size: 13px; }
+  .folder-form-actions { display: flex; gap: 10px; }
+
+  .folders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px;
+  }
+
+  .empty-hint { color: var(--muted); font-size: 14px; grid-column: 1/-1; }
+
+  .folder-card {
+    background: rgba(243,236,220,0.65);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .folder-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+  .folder-cover {
+    height: 110px;
+    background-color: var(--beige-dim);
+    background-size: cover;
+    background-position: center;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+
+  .folder-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 10px 10px 2px;
+  }
+  .folder-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    padding: 0 10px 10px;
+  }
+
+  .folder-delete {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .folder-card:hover .folder-delete { opacity: 1; }
+
+  .folder-detail-title {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 18px;
+    margin: 14px 0 14px;
+    color: var(--text-green);
+  }
+
+  .folder-photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px;
+  }
+
+  .folder-photo-item {
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    background: var(--beige-dim);
+  }
+  .folder-photo-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .photo-delete {
+    position: absolute;
+    top: 5px; right: 5px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .folder-photo-item:hover .photo-delete { opacity: 1; }
+
   footer.hint {
     text-align: center;
     color: var(--muted);

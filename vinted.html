@@ -728,6 +728,7 @@
       <div class="note-actions">
         <button class="btn-secondary note-edit-btn">Modifier</button>
         <button class="btn-primary note-save-btn" style="display:none;">Enregistrer</button>
+        <button class="btn-secondary note-add-btn">+ Ajouter un bloc Annonce</button>
       </div>
     </div>
   </section>
@@ -748,6 +749,7 @@
       <div class="note-actions">
         <button class="btn-secondary note-edit-btn">Modifier</button>
         <button class="btn-primary note-save-btn" style="display:none;">Enregistrer</button>
+        <button class="btn-secondary note-add-btn">+ Ajouter un bloc Annonce</button>
       </div>
     </div>
   </section>
@@ -768,6 +770,7 @@
       <div class="note-actions">
         <button class="btn-secondary note-edit-btn">Modifier</button>
         <button class="btn-primary note-save-btn" style="display:none;">Enregistrer</button>
+        <button class="btn-secondary note-add-btn">+ Ajouter un bloc Annonce</button>
       </div>
     </div>
   </section>
@@ -788,6 +791,7 @@
       <div class="note-actions">
         <button class="btn-secondary note-edit-btn">Modifier</button>
         <button class="btn-primary note-save-btn" style="display:none;">Enregistrer</button>
+        <button class="btn-secondary note-add-btn">+ Ajouter un bloc Annonce</button>
       </div>
     </div>
   </section>
@@ -808,6 +812,7 @@
       <div class="note-actions">
         <button class="btn-secondary note-edit-btn">Modifier</button>
         <button class="btn-primary note-save-btn" style="display:none;">Enregistrer</button>
+        <button class="btn-secondary note-add-btn">+ Ajouter un bloc Annonce</button>
       </div>
     </div>
   </section>
@@ -894,7 +899,6 @@
     <div class="panel-head">
       <div><p class="eyebrow">Étape à venir</p><h1 class="panel-title">Messages types</h1></div>
     </div>
-    <div class="placeholder-box"><span class="tag-stub">on verra plus tard</span><p>Vos messages pré-rédigés viendront ici.</p></div>
   </section>
 
   <!-- Performances (no sub) -->
@@ -906,7 +910,7 @@
   </section>
 </main>
 
-<footer class="hint">Étape 3 : Accueil avec CA annuel, performance moyenne et graphiques connectés à votre Excel.</footer>
+<footer class="hint"></footer>
 
 </div>
 
@@ -1188,20 +1192,57 @@
   // COMPTES — blocs de texte modifiables (Modifier / Enregistrer)
   // Stockés dans Supabase (table "notes"), partagés entre appareils
   // ---------------------------------------------------------------
+  function escapeHtmlNotes(str) {
+    return String(str).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s]));
+  }
+
   document.querySelectorAll('.notes-grid').forEach(grid => {
     const account = grid.dataset.account;
-    const textareas = grid.querySelectorAll('.note-block');
     const editBtn = grid.querySelector('.note-edit-btn');
     const saveBtn = grid.querySelector('.note-save-btn');
+    const addBtn = grid.querySelector('.note-add-btn');
+    const actions = grid.querySelector('.note-actions');
+    const FIXED_KEYS = ['1', '2'];
 
-    // Charger le texte sauvegardé depuis Supabase
+    function currentTextareas() {
+      return grid.querySelectorAll('.note-block');
+    }
+
+    function addBlockEl(noteKey, content, editing) {
+      const col = document.createElement('div');
+      col.className = 'note-col';
+      col.innerHTML = `
+        <label class="note-label">Annonce type</label>
+        <textarea class="note-block" data-note="${noteKey}" placeholder="Écrivez votre texte ici…"${editing ? '' : ' readonly'}></textarea>
+      `;
+      const ta = col.querySelector('textarea');
+      ta.value = content || '';
+      if (editing) ta.classList.add('editing');
+      grid.insertBefore(col, actions);
+      return ta;
+    }
+
+    function enterEditMode() {
+      currentTextareas().forEach(ta => {
+        ta.readOnly = false;
+        ta.classList.add('editing');
+      });
+      editBtn.style.display = 'none';
+      saveBtn.style.display = 'inline-block';
+    }
+
+    // Charger le texte sauvegardé depuis Supabase (y compris les blocs Annonce ajoutés)
     (async () => {
       try {
         const { data, error } = await sb.from('notes').select('note_key, content').eq('account', account);
         if (error) throw error;
-        textareas.forEach(ta => {
-          const row = (data || []).find(r => r.note_key === ta.dataset.note);
-          if (row) ta.value = row.content || '';
+        (data || []).forEach(row => {
+          if (FIXED_KEYS.includes(row.note_key)) {
+            const ta = grid.querySelector(`.note-block[data-note="${row.note_key}"]`);
+            if (ta) ta.value = row.content || '';
+          } else {
+            addBlockEl(row.note_key, row.content, false);
+          }
         });
       } catch (e) {
         console.warn('Lecture Supabase impossible (notes)', e);
@@ -1209,18 +1250,21 @@
     })();
 
     editBtn.addEventListener('click', () => {
-      textareas.forEach(ta => {
-        ta.readOnly = false;
-        ta.classList.add('editing');
-      });
-      editBtn.style.display = 'none';
-      saveBtn.style.display = 'inline-block';
-      textareas[0].focus();
+      enterEditMode();
+      currentTextareas()[0].focus();
+    });
+
+    addBtn.addEventListener('click', () => {
+      const noteKey = 'extra_' + Date.now();
+      enterEditMode();
+      const ta = addBlockEl(noteKey, '', true);
+      ta.focus();
     });
 
     saveBtn.addEventListener('click', async () => {
       saveBtn.disabled = true;
       saveBtn.textContent = 'Enregistrement…';
+      const textareas = currentTextareas();
       try {
         const rows = Array.from(textareas).map(ta => ({
           account,

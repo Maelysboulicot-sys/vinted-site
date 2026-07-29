@@ -1348,8 +1348,13 @@
     if (error) throw error;
   }
 
-  function publicPhotoUrl(path) {
-    return sb.storage.from(PHOTOS_BUCKET).getPublicUrl(path).data.publicUrl;
+  async function getPhotoUrl(path) {
+    const { data, error } = await sb.storage.from(PHOTOS_BUCKET).createSignedUrl(path, 3600);
+    if (error) {
+      console.warn('Lien photo impossible à générer', error);
+      return '';
+    }
+    return data.signedUrl;
   }
 
   function escapeHtmlPhotos(str) {
@@ -1380,10 +1385,10 @@
         gridEl.innerHTML = '<p class="empty-hint">Aucun dossier pour le moment — créez-en un ci-dessus.</p>';
         return;
       }
-      folders.forEach(folder => {
+      for (const folder of folders) {
         const items = folder.photo_items || [];
         const cover = items[0];
-        const coverUrl = cover ? publicPhotoUrl(cover.storage_path) : '';
+        const coverUrl = cover ? await getPhotoUrl(cover.storage_path) : '';
         const card = document.createElement('div');
         card.className = 'folder-card';
         card.innerHTML = `
@@ -1410,7 +1415,7 @@
           }
         });
         gridEl.appendChild(card);
-      });
+      }
     } else {
       gridEl.style.display = 'none';
       detailEl.style.display = 'block';
@@ -1428,8 +1433,8 @@
         <div class="folder-photos-grid"></div>
       `;
       const photosGrid = detailEl.querySelector('.folder-photos-grid');
-      (folder.photo_items || []).forEach(photo => {
-        const url = publicPhotoUrl(photo.storage_path);
+      for (const photo of (folder.photo_items || [])) {
+        const url = await getPhotoUrl(photo.storage_path);
         const item = document.createElement('div');
         item.className = 'folder-photo-item';
         item.innerHTML = `<img src="${url}" alt="${escapeHtmlPhotos(photo.file_name || '')}"><button class="photo-delete" aria-label="Supprimer la photo">×</button>`;
@@ -1443,7 +1448,7 @@
           }
         });
         photosGrid.appendChild(item);
-      });
+      }
       detailEl.querySelector('.folder-back').addEventListener('click', () => {
         container.dataset.open = '';
         renderFolderView(container);

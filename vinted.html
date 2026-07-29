@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root {
     --sage: #A6AC98;
@@ -564,7 +565,7 @@
   <section class="panel active" id="panel-accueil">
     <div class="panel-head">
       <div>
-        <p class="eyebrow">Chiffres clés</p>
+        <p class="eyebrow">Tableau de bord</p>
         <h1 class="panel-title">Accueil</h1>
       </div>
     </div>
@@ -801,6 +802,14 @@
 
 <script>
 (function () {
+  // ---------------------------------------------------------------
+  // SUPABASE — connexion partagée (notes + photos, synchronisées entre appareils)
+  // ---------------------------------------------------------------
+  const SUPABASE_URL = 'https://jsjywqjswjdvgeaeuppv.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_3XDD2mAOUnAPRR1i0KocLw_TNbazytP';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const PHOTOS_BUCKET = 'photos';
+
   const catTabs = document.querySelectorAll('.tab-btn');
   const subNavs = document.querySelectorAll('.sub-tabs');
   const panels = document.querySelectorAll('.panel');
@@ -1066,23 +1075,27 @@
 
   // ---------------------------------------------------------------
   // COMPTES — blocs de texte modifiables (Modifier / Enregistrer)
+  // Stockés dans Supabase (table "notes"), partagés entre appareils
   // ---------------------------------------------------------------
-  const NOTES_KEY_PREFIX = 'vinted-note:';
-
   document.querySelectorAll('.notes-grid').forEach(grid => {
     const account = grid.dataset.account;
     const textareas = grid.querySelectorAll('.note-block');
     const editBtn = grid.querySelector('.note-edit-btn');
     const saveBtn = grid.querySelector('.note-save-btn');
 
-    // Charger le texte sauvegardé (s'il existe)
-    textareas.forEach(ta => {
-      const key = NOTES_KEY_PREFIX + account + ':' + ta.dataset.note;
+    // Charger le texte sauvegardé depuis Supabase
+    (async () => {
       try {
-        const saved = localStorage.getItem(key);
-        if (saved !== null) ta.value = saved;
-      } catch (e) { console.warn('Lecture localStorage impossible', e); }
-    });
+        const { data, error } = await sb.from('notes').select('note_key, content').eq('account', account);
+        if (error) throw error;
+        textareas.forEach(ta => {
+          const row = (data || []).find(r => r.note_key === ta.dataset.note);
+          if (row) ta.value = row.content || '';
+        });
+      } catch (e) {
+        console.warn('Lecture Supabase impossible (notes)', e);
+      }
+    })();
 
     editBtn.addEventListener('click', () => {
       textareas.forEach(ta => {
@@ -1094,95 +1107,94 @@
       textareas[0].focus();
     });
 
-    saveBtn.addEventListener('click', () => {
+    saveBtn.addEventListener('click', async () => {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Enregistrement…';
+      try {
+        const rows = Array.from(textareas).map(ta => ({
+          account,
+          note_key: ta.dataset.note,
+          content: ta.value,
+          updated_at: new Date().toISOString()
+        }));
+        const { error } = await sb.from('notes').upsert(rows, { onConflict: 'account,note_key' });
+        if (error) throw error;
+      } catch (e) {
+        console.warn('Sauvegarde Supabase impossible (notes)', e);
+        alert('La sauvegarde a échoué (connexion Supabase). Vérifiez votre connexion internet et réessayez.');
+      }
       textareas.forEach(ta => {
-        const key = NOTES_KEY_PREFIX + account + ':' + ta.dataset.note;
-        try { localStorage.setItem(key, ta.value); } catch (e) { console.warn('Sauvegarde impossible', e); }
         ta.readOnly = true;
         ta.classList.remove('editing');
       });
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Enregistrer';
       saveBtn.style.display = 'none';
       editBtn.style.display = 'inline-block';
     });
   });
 
   // ---------------------------------------------------------------
-  // PHOTOS — dossiers photos (IndexedDB, gère les fichiers lourds)
+  // PHOTOS — dossiers photos (Supabase Storage + table, partagés entre appareils)
   // ---------------------------------------------------------------
-  const PDB_NAME = 'vintedPhotosDB';
-  const PDB_STORE = 'folders';
-
-  function openPhotosDB() {
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(PDB_NAME, 1);
-      req.onupgradeneeded = () => {
-        const db = req.result;
-        if (!db.objectStoreNames.contains(PDB_STORE)) {
-          const store = db.createObjectStore(PDB_STORE, { keyPath: 'id', autoIncrement: true });
-          store.createIndex('category', 'category', { unique: false });
-        }
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
   async function addFolder(category, name, files) {
-    const db = await openPhotosDB();
-    const photos = Array.from(files).map(file => ({ name: file.name, blob: file }));
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(PDB_STORE, 'readwrite');
-      const req = tx.objectStore(PDB_STORE).add({ category, name, createdAt: Date.now(), photos });
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
+    const { data: folder, error: folderErr } = await sb
+      .from('photo_folders')
+      .insert({ category, name })
+      .select()
+      .single();
+    if (folderErr) throw folderErr;
+
+    for (const file of files) {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `${category}/${folder.id}/${Date.now()}_${safeName}`;
+      const { error: uploadErr } = await sb.storage.from(PHOTOS_BUCKET).upload(path, file);
+      if (uploadErr) throw uploadErr;
+      const { error: itemErr } = await sb
+        .from('photo_items')
+        .insert({ folder_id: folder.id, storage_path: path, file_name: file.name });
+      if (itemErr) throw itemErr;
+    }
+    return folder.id;
   }
 
   async function getFoldersByCategory(category) {
-    const db = await openPhotosDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(PDB_STORE, 'readonly');
-      const req = tx.objectStore(PDB_STORE).index('category').getAll(category);
-      req.onsuccess = () => resolve(req.result.sort((a, b) => b.createdAt - a.createdAt));
-      req.onerror = () => reject(req.error);
-    });
+    const { data, error } = await sb
+      .from('photo_folders')
+      .select('*, photo_items(*)')
+      .eq('category', category)
+      .order('created_at', { ascending: false })
+      .order('created_at', { foreignTable: 'photo_items', ascending: true });
+    if (error) throw error;
+    return data || [];
   }
 
   async function getFolder(id) {
-    const db = await openPhotosDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(PDB_STORE, 'readonly');
-      const req = tx.objectStore(PDB_STORE).get(Number(id));
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
+    const { data, error } = await sb
+      .from('photo_folders')
+      .select('*, photo_items(*)')
+      .eq('id', id)
+      .order('created_at', { foreignTable: 'photo_items', ascending: true })
+      .single();
+    if (error) return null;
+    return data;
   }
 
-  async function deleteFolder(id) {
-    const db = await openPhotosDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(PDB_STORE, 'readwrite');
-      tx.objectStore(PDB_STORE).delete(Number(id));
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
+  async function deleteFolder(id, photoItems) {
+    const paths = (photoItems || []).map(p => p.storage_path);
+    if (paths.length) await sb.storage.from(PHOTOS_BUCKET).remove(paths);
+    const { error } = await sb.from('photo_folders').delete().eq('id', id);
+    if (error) throw error;
   }
 
-  async function deletePhotoFromFolder(id, photoIndex) {
-    const db = await openPhotosDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(PDB_STORE, 'readwrite');
-      const store = tx.objectStore(PDB_STORE);
-      const getReq = store.get(Number(id));
-      getReq.onsuccess = () => {
-        const folder = getReq.result;
-        folder.photos.splice(photoIndex, 1);
-        const putReq = store.put(folder);
-        putReq.onsuccess = () => resolve();
-        putReq.onerror = () => reject(putReq.error);
-      };
-      getReq.onerror = () => reject(getReq.error);
-    });
+  async function deletePhotoItem(itemId, storagePath) {
+    await sb.storage.from(PHOTOS_BUCKET).remove([storagePath]);
+    const { error } = await sb.from('photo_items').delete().eq('id', itemId);
+    if (error) throw error;
+  }
+
+  function publicPhotoUrl(path) {
+    return sb.storage.from(PHOTOS_BUCKET).getPublicUrl(path).data.publicUrl;
   }
 
   function escapeHtmlPhotos(str) {
@@ -1199,22 +1211,31 @@
       detailEl.style.display = 'none';
       detailEl.innerHTML = '';
       gridEl.style.display = 'grid';
-      const folders = await getFoldersByCategory(category);
+      gridEl.innerHTML = '<p class="empty-hint">Chargement…</p>';
+      let folders;
+      try {
+        folders = await getFoldersByCategory(category);
+      } catch (e) {
+        console.warn('Lecture Supabase impossible (dossiers)', e);
+        gridEl.innerHTML = '<p class="empty-hint">Impossible de charger les dossiers (vérifiez la connexion Supabase).</p>';
+        return;
+      }
       gridEl.innerHTML = '';
       if (!folders.length) {
         gridEl.innerHTML = '<p class="empty-hint">Aucun dossier pour le moment — créez-en un ci-dessus.</p>';
         return;
       }
       folders.forEach(folder => {
-        const cover = folder.photos[0];
-        const coverUrl = cover ? URL.createObjectURL(cover.blob) : '';
+        const items = folder.photo_items || [];
+        const cover = items[0];
+        const coverUrl = cover ? publicPhotoUrl(cover.storage_path) : '';
         const card = document.createElement('div');
         card.className = 'folder-card';
         card.innerHTML = `
           <button class="folder-delete" aria-label="Supprimer le dossier">×</button>
           <div class="folder-cover" style="${coverUrl ? `background-image:url('${coverUrl}')` : ''}">${coverUrl ? '' : '📁'}</div>
           <div class="folder-name">${escapeHtmlPhotos(folder.name)}</div>
-          <div class="folder-count">${folder.photos.length} photo${folder.photos.length > 1 ? 's' : ''}</div>
+          <div class="folder-count">${items.length} photo${items.length > 1 ? 's' : ''}</div>
         `;
         card.addEventListener('click', (e) => {
           if (e.target.closest('.folder-delete')) return;
@@ -1224,8 +1245,13 @@
         card.querySelector('.folder-delete').addEventListener('click', async (e) => {
           e.stopPropagation();
           if (confirm('Supprimer ce dossier et toutes ses photos ?')) {
-            await deleteFolder(folder.id);
-            renderFolderView(container);
+            try {
+              await deleteFolder(folder.id, items);
+              renderFolderView(container);
+            } catch (err) {
+              console.warn('Suppression impossible', err);
+              alert('La suppression a échoué. Réessayez.');
+            }
           }
         });
         gridEl.appendChild(card);
@@ -1233,7 +1259,13 @@
     } else {
       gridEl.style.display = 'none';
       detailEl.style.display = 'block';
-      const folder = await getFolder(openId);
+      detailEl.innerHTML = '<p class="empty-hint">Chargement…</p>';
+      let folder;
+      try {
+        folder = await getFolder(openId);
+      } catch (e) {
+        console.warn('Lecture Supabase impossible (dossier)', e);
+      }
       if (!folder) { container.dataset.open = ''; renderFolderView(container); return; }
       detailEl.innerHTML = `
         <button class="btn-secondary folder-back">← Retour aux dossiers</button>
@@ -1241,14 +1273,19 @@
         <div class="folder-photos-grid"></div>
       `;
       const photosGrid = detailEl.querySelector('.folder-photos-grid');
-      folder.photos.forEach((photo, idx) => {
-        const url = URL.createObjectURL(photo.blob);
+      (folder.photo_items || []).forEach(photo => {
+        const url = publicPhotoUrl(photo.storage_path);
         const item = document.createElement('div');
         item.className = 'folder-photo-item';
-        item.innerHTML = `<img src="${url}" alt="${escapeHtmlPhotos(photo.name)}"><button class="photo-delete" aria-label="Supprimer la photo">×</button>`;
+        item.innerHTML = `<img src="${url}" alt="${escapeHtmlPhotos(photo.file_name || '')}"><button class="photo-delete" aria-label="Supprimer la photo">×</button>`;
         item.querySelector('.photo-delete').addEventListener('click', async () => {
-          await deletePhotoFromFolder(folder.id, idx);
-          renderFolderView(container);
+          try {
+            await deletePhotoItem(photo.id, photo.storage_path);
+            renderFolderView(container);
+          } catch (err) {
+            console.warn('Suppression impossible', err);
+            alert('La suppression a échoué. Réessayez.');
+          }
         });
         photosGrid.appendChild(item);
       });
@@ -1281,10 +1318,19 @@
       const name = nameInput.value.trim();
       if (!name) { alert('Merci de donner un nom au dossier.'); return; }
       if (!filesInput.files.length) { alert('Sélectionnez au moins une photo.'); return; }
-      await addFolder(category, name, filesInput.files);
-      nameInput.value = '';
-      filesInput.value = '';
-      form.style.display = 'none';
+      saveFolderBtn.disabled = true;
+      saveFolderBtn.textContent = 'Envoi en cours…';
+      try {
+        await addFolder(category, name, filesInput.files);
+        nameInput.value = '';
+        filesInput.value = '';
+        form.style.display = 'none';
+      } catch (e) {
+        console.warn('Création du dossier impossible', e);
+        alert('La création du dossier a échoué (vérifiez la connexion Supabase et que le bucket "photos" existe).');
+      }
+      saveFolderBtn.disabled = false;
+      saveFolderBtn.textContent = 'Enregistrer';
       renderFolderView(container);
     });
 
